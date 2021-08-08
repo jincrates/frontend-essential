@@ -10,6 +10,7 @@ const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const store = {
     currentPage: 1,
+    feeds: [],
 } //여러 함수가 공유해서 사용하는 변수
 
 function getData(url) {
@@ -19,9 +20,17 @@ function getData(url) {
     return JSON.parse(ajax.response);
 }
 
+function makeFeeds(feeds) {
+    for(let i = 0, max = feeds.length; i < max; i++) {
+        feeds[i].read = false;
+    }
+
+    return feeds;
+}
+
 // 목록 호출부분 재사용을 위한 메서드화
 function newsFeed() {
-    const newsFeed = getData(NEWS_URL);
+    let newsFeed = store.feeds;
     const newsList = [];
 
     //https://tailwindcss.com/
@@ -50,6 +59,12 @@ function newsFeed() {
             </div>
         </div>
     `;
+
+    if(newsFeed.length === 0) {
+        newsFeed = store.feeds = makeFeeds(getData(NEWS_URL));
+    }
+
+    console.log(newsFeed);
 
     for (let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++) {
         newsList.push(`
@@ -109,6 +124,13 @@ function newsDetail() {
             </div>
         </div>
     `;
+
+    for(let i = 0, max = store.feeds.length; i < max; i++){
+        if(store.feeds[i].id === Number(id)) {
+            store.feeds[i].read = true;
+            break;
+        }
+    }
 
     function makeComment(comments, called = 0) {
         const commentString = [];
