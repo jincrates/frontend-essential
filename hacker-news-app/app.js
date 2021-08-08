@@ -8,6 +8,9 @@ const ajax = new XMLHttpRequest(); //const는 상수
 const content = document.createElement('div');
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
+const store = {
+    currentPage: 1,
+} //여러 함수가 공유해서 사용하는 변수
 
 function getData(url) {
     ajax.open('GET', url, false);
@@ -23,10 +26,10 @@ function newsFeed() {
     
     newsList.push('<ul>');
     
-    for (let i = 0, max = 10; i < max; i++) {
+    for (let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++) {
         newsList.push( `
             <li>
-                <a href="#${newsFeed[i].id}">
+                <a href="#/show/${newsFeed[i].id}">
                     ${newsFeed[i].title} (${newsFeed[i].comments_count})
                 </a>
             </li>
@@ -34,19 +37,24 @@ function newsFeed() {
     }
 
     newsList.push('</ul>');
-
+    newsList.push(`
+        <div>
+            <a href="#/page/${store.currentPage > 1 ? store.currentPage - 1 : 1}">이전 페이지</a>
+            <a href="#/page/${store.currentPage + 1}">다음 페이지</a>
+        </div>
+    `);
     container.innerHTML = newsList.join('');  //join() : 배열 안에 요소들을 하나의 문자열로 합치는 메소드 - 기본값은 ','를 구분자로 넣음
 }
 
 function newsDetail() {
-    const id = location.hash.substr(1);
+    const id = location.hash.substr(7);
     const newsContent = getData(CONTENT_URL.replace('@id', id));
 
     container.innerHTML = `
         <h1>${newsContent.title}</h1>
 
         <div>
-            <a href="#">목록으로</a>
+            <a href="#/page/${store.currentPage}">목록으로</a>
         </div>
     `;
 }
@@ -54,14 +62,15 @@ function newsDetail() {
 //화면 전환을 처리하는 라우터
 function router() {
     const routePath = location.hash;
-
     //location.hash에 '#'만 들어오면 빈문자로 인식한다.
     if(routePath === '') {
         newsFeed();  //첫 진입일때
+    } else if(routePath.indexOf('#/page/') >= 0) {  // indexOf는 값이 없으면 -1을 리턴
+        store.currentPage = Number(routePath.substr(7));
+        newsFeed();
     } else {
         newsDetail();
     }
-    
 }
 
 window.addEventListener('hashchange', router);
