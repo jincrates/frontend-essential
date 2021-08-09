@@ -8,5 +8,5 @@
         "noImplicitThis": true,
         "sourceMap": true,
         "downlevelIteration": true
-    }
+    },
 }

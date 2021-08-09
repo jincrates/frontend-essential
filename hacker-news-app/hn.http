@@ -1,0 +1,7 @@
+# REST Client
+
+###
+GET https://api.hnpwa.com/v0/news/1.json HTTP/1.1
+
+###
+GET https://api.hnpwa.com/v0/item/28115411.json HTTP/1.1

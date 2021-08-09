@@ -8,17 +8,29 @@ type Store = {
     feeds: NewsFeed[];
 }
 
-type NewsFeed = {
+type News = {
     id: number;
-    comments_count = number;
+    time_ago: string;
+    title: string;
     url: string;
     user: string;
-    time_ago: string;
+    content: string;
+}
+
+type NewsFeed = News & { 
+    comments_count: number;
     points: number;
-    title: string;
     read?: boolean;
 }
 
+type NewsDetail = News & {
+    comments: NewsComment[];
+}
+
+type NewsComment = News & {
+    comments: NewsComment[];
+    level: number;
+}
 const container: HTMLElement | null = document.getElementById('root');
 const ajax: XMLHttpRequest = new XMLHttpRequest(); //const는 상수
 const content = document.createElement('div');
@@ -29,14 +41,14 @@ const store: Store = {
     feeds: [],
 } //여러 함수가 공유해서 사용하는 변수
 
-function getData(url) {
+function getData<AjaxResponse>(url: string): AjaxResponse {
     ajax.open('GET', url, false);
     ajax.send();
 
     return JSON.parse(ajax.response);
 }
 
-function makeFeeds(feeds) {
+function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
     for(let i = 0, max = feeds.length; i < max; i++) {
         feeds[i].read = false;
     }
@@ -45,7 +57,7 @@ function makeFeeds(feeds) {
 }
 
 //타입가드 코드
-function updateView(html) {
+function updateView(html: string): void {
     if(container) {
         container.innerHTML = html;
     } else {
@@ -54,7 +66,7 @@ function updateView(html) {
 }
 
 // 목록 호출부분 재사용을 위한 메서드화
-function newsFeed() {
+function newsFeed(): void {
     let newsFeed: NewsFeed[] = store.feeds;
     const newsList = [];
 
@@ -86,7 +98,7 @@ function newsFeed() {
     `;
 
     if(newsFeed.length === 0) {
-        newsFeed = store.feeds = makeFeeds(getData(NEWS_URL));
+        newsFeed = store.feeds = makeFeeds(getData<NewsFeed[]>(NEWS_URL));
     }
 
     for (let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++) {
@@ -111,15 +123,15 @@ function newsFeed() {
         `);
     }
     template = template.replace('{{__news_feed__}}', newsList.join(''));
-    template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
-    template = template.replace('{{__next_page__}}', store.currentPage + 1);
+    template = template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1));
+    template = template.replace('{{__next_page__}}', String(store.currentPage + 1));
     
     updateView(template);
 }
 
-function newsDetail() {
+function newsDetail(): void {
     const id = location.hash.substr(7);
-    const newsContent = getData(CONTENT_URL.replace('@id', id));
+    const newsContent = getData<NewsDetail>(CONTENT_URL.replace('@id', id));
     let template = `
         <div class="bg-gray-600 min-h-screen pb-8">
             <div class="bg-white text-xl">
@@ -156,34 +168,35 @@ function newsDetail() {
         }
     }
 
-    function makeComment(comments, called = 0) {
-        const commentString = [];
-
-        for(let i = 0, max = comments.length; i < max; i++){
-            commentString.push(`
-                <div style="padding-left: ${called * 40}px;" class="mt-4">
-                    <div class="text-gray-400">
-                        <i class="fa fa-sort-up mr-2"></i>
-                        <strong>${comments[i].user}</strong> ${comments[i].time_ago}
-                    </div>
-                    <p class="text-gray-700">${comments[i].content}</p>
-                </div>      
-            `);
-
-            //재귀호출
-            if(comments[i].comments.length > 0){
-                commentString.push(makeComment(comments[i].comments, called + 1));
-            }
-        }
-
-        return commentString.join('');
-    }
-
+    
     updateView(template.replace('{{__comments__}}', makeComment(newsContent.comments)));
 }
 
+function makeComment(comments: NewsComment[]): string {
+    const commentString = [];
+
+    for(let i = 0, max = comments.length; i < max; i++){
+        const comment: NewsComment = comments[i];
+        commentString.push(`
+            <div style="padding-left: ${comment.level * 40}px;" class="mt-4">
+                <div class="text-gray-400">
+                    <i class="fa fa-sort-up mr-2"></i>
+                    <strong>${comment.user}</strong> ${comment.time_ago}
+                </div>
+                <p class="text-gray-700">${comment.content}</p>
+            </div>      
+        `);
+
+        //재귀호출
+        if(comment.comments.length > 0){
+            commentString.push(makeComment(comment.comments));
+        }
+    }
+
+    return commentString.join('');
+}
 //화면 전환을 처리하는 라우터
-function router() {
+function router(): void {
     const routePath = location.hash;
     //location.hash에 '#'만 들어오면 빈문자로 인식한다.
     if (routePath === '') {
