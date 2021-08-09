@@ -3,12 +3,28 @@
 // 따라서 아이러니하게도 DOM API를 사용하지 않고 문자열을 이용하는 것이 마크업 구조를 파악하기 더 용이하다.
 
 //let ajax = new XMLHttpRequest();   //let 이후에 다른 값을 넣을 수 있음
-const container = document.getElementById('root');
-const ajax = new XMLHttpRequest(); //const는 상수
+type Store = {
+    currentPage: number;
+    feeds: NewsFeed[];
+}
+
+type NewsFeed = {
+    id: number;
+    comments_count = number;
+    url: string;
+    user: string;
+    time_ago: string;
+    points: number;
+    title: string;
+    read?: boolean;
+}
+
+const container: HTMLElement | null = document.getElementById('root');
+const ajax: XMLHttpRequest = new XMLHttpRequest(); //const는 상수
 const content = document.createElement('div');
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-const store = {
+const store: Store = {
     currentPage: 1,
     feeds: [],
 } //여러 함수가 공유해서 사용하는 변수
@@ -28,9 +44,18 @@ function makeFeeds(feeds) {
     return feeds;
 }
 
+//타입가드 코드
+function updateView(html) {
+    if(container) {
+        container.innerHTML = html;
+    } else {
+        console.error('최상위 컨테이너가 없어 UI를 진행하지 못합니다.');
+    }
+}
+
 // 목록 호출부분 재사용을 위한 메서드화
 function newsFeed() {
-    let newsFeed = store.feeds;
+    let newsFeed: NewsFeed[] = store.feeds;
     const newsList = [];
 
     //https://tailwindcss.com/
@@ -64,8 +89,6 @@ function newsFeed() {
         newsFeed = store.feeds = makeFeeds(getData(NEWS_URL));
     }
 
-    console.log(newsFeed);
-
     for (let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++) {
         newsList.push(`
             <div class="p-6 ${newsFeed[i].read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
@@ -90,7 +113,8 @@ function newsFeed() {
     template = template.replace('{{__news_feed__}}', newsList.join(''));
     template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
     template = template.replace('{{__next_page__}}', store.currentPage + 1);
-    container.innerHTML = template;
+    
+    updateView(template);
 }
 
 function newsDetail() {
@@ -155,7 +179,7 @@ function newsDetail() {
         return commentString.join('');
     }
 
-    container.innerHTML = template.replace('{{__comments__}}', makeComment(newsContent.comments));
+    updateView(template.replace('{{__comments__}}', makeComment(newsContent.comments)));
 }
 
 //화면 전환을 처리하는 라우터
