@@ -1,0 +1,12 @@
+11
+76/home/jincrates/projects/front/frontend-essential/hacker-news-app/index.html1635406523107387653 0
+72/home/jincrates/projects/front/frontend-essential/hacker-news-app/app.ts1635405640548912790 0
+73/home/jincrates/projects/front/frontend-essential/hacker-news-app/hn.http1635405640548912790 0
+83/home/jincrates/projects/front/frontend-essential/hacker-news-app/package-lock.json1635405640548912790 0
+78/home/jincrates/projects/front/frontend-essential/hacker-news-app/package.json1635406591391110268 0
+92/home/jincrates/projects/front/frontend-essential/hacker-news-app/dist/index.ee4ce587.js.map1635406707894715351 0
+79/home/jincrates/projects/front/frontend-essential/hacker-news-app/tsconfig.json1635405640548912790 0
+88/home/jincrates/projects/front/frontend-essential/hacker-news-app/dist/index.ee4ce587.js1635406707890715363 0
+70/home/jincrates/projects/front/frontend-essential/hacker-news-app/dist1635406707894715351 1
+81/home/jincrates/projects/front/frontend-essential/hacker-news-app/dist/index.html1635406707850715484 0
+65/home/jincrates/projects/front/frontend-essential/hacker-news-app1635406707834715532 1
