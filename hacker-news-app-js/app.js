@@ -18,8 +18,19 @@ function getData(url) {
 function newsFeed() {
     const newsFeed = getData(NEWS_URL);
     const newsList = [];
+    let template = `
+        <div>
+            <h1>Hacker News</h1>
+            <ul>
+                {{__news_feed__}}
+            </ul>
+            <div>
+                <a href="#/page/{{__prev_page__}}">Prev</a>
+                <a href="#/page/{{__next_page__}}">Next</a>
+            </div>
+        </div>
+    `;
 
-    newsList.push('<ul>');
     for (let i = store.currentPage - 1; i < store.currentPage * 10; i++) {
         newsList.push(`
             <li>
@@ -29,14 +40,12 @@ function newsFeed() {
             </li>
         `);
     }
-    newsList.push('</ul>');
-    newsList.push(`
-        <div>
-            <a href="#/page/${store.currentPage > 1 ? store.currentPage - 1 : 1}">Prev</a>
-            <a href="#/page/${store.currentPage + 1}">Next</a>
-        </div>
-    `);
-    container.innerHTML = newsList.join('');  //배열 안에 들어있는 요소를 모두 합쳐줌
+
+    template = template.replace('{{__news_feed__}}', newsList.join(''));
+    template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1);
+    template = template.replace('{{__next_page__}}', store.currentPage + 1);
+
+    container.innerHTML = template;
 }
 
 function newsDetail() {
