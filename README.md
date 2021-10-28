@@ -12,9 +12,7 @@ $ sudo apt-get install -y nodejs
 
 $ node -v
 
-$ sudo npm i parcel
-
-$ sudo npm install -g parcel-bundler
+$ npm install --save-dev parcel
 
 $ sudo npm install -g typescript
 ```
@@ -23,4 +21,6 @@ $ sudo npm install -g typescript
 ## 그 외에 추가설정
 ```
 $ npm install colors
+
+$ npx parcel index.html
 ```
