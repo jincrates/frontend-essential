@@ -3,6 +3,7 @@
 
 
 ## 우분투(20.04)에 개발환경 설정하기
+```
 $ sudo snap info curl
 
 $ sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -14,7 +15,10 @@ $ node -v
 $ sudo npm install -g parcel-bundler
 
 $ sudo npm install -g typescript
+```
 
 
-## 그 외에 추가사항
+## 그 외에 추가설정
+```
 $ npm install colors
+```
