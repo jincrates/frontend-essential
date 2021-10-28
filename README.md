@@ -14,3 +14,7 @@ $ node -v
 $ sudo npm install -g parcel-bundler
 
 $ sudo npm install -g typescript
+
+
+## 그 외에 추가사항
+$ npm install colors
