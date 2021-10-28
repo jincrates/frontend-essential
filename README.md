@@ -12,6 +12,8 @@ $ sudo apt-get install -y nodejs
 
 $ node -v
 
+$ sudo npm i parcel
+
 $ sudo npm install -g parcel-bundler
 
 $ sudo npm install -g typescript
