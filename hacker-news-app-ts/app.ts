@@ -39,11 +39,34 @@ const store: Store = {
     feeds: [],
 } //여러 함수가 공유해서 사용하는 변수
 
-function getData<AjaxResponse>(url: string): AjaxResponse {
-    ajax.open('GET', url, false);
-    ajax.send();
+//class 생성
+class Api {
+    url: string;
+    ajax: XMLHttpRequest;
 
-    return JSON.parse(ajax.response);
+    constructor(url: string) {
+        this.url = url;
+        this.ajax = new XMLHttpRequest();
+    }
+
+    protected getRequest<AjaxResponse>(): AjaxResponse {
+        this.ajax.open('GET', this.url, false);
+        this.ajax.send();
+
+        return JSON.parse(this.ajax.response);
+    }
+}
+
+class NewsFeedApi extends Api {
+    getData(): NewsFeed[] {
+        return this.getRequest<NewsFeed[]>();
+    }
+}
+
+class NewsDetailApi extends Api {
+    getData(): NewsDetail[] {
+        return this.getRequest<NewsDetail[]>();
+    }
 }
 
 function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
@@ -65,6 +88,7 @@ function updateView(html: string): void {
 
 // 목록 호출부분 재사용을 위한 메서드화
 function newsFeed(): void {
+    const api = new NewsFeedApi(NEWS_URL);
     let newsFeed: NewsFeed[] = store.feeds;
     const newsList = [];
 
@@ -96,7 +120,7 @@ function newsFeed(): void {
     `;
 
     if(newsFeed.length === 0) {
-        newsFeed = store.feeds = makeFeeds(getData<NewsFeed[]>(NEWS_URL));
+        newsFeed = store.feeds = makeFeeds(api.getData());
     }
 
     for (let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++) {
@@ -129,7 +153,8 @@ function newsFeed(): void {
 
 function newsDetail(): void {
     const id = location.hash.substr(7);
-    const newsContent = getData<NewsDetail>(CONTENT_URL.replace('@id', id));
+    const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
+    const newsContent = api.getData();
     let template = `
         <div class="bg-gray-600 min-h-screen pb-8">
             <div class="bg-white text-xl">

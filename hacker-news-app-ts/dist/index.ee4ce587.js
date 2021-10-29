@@ -469,6 +469,28 @@ const store = {
     feeds: []
 } //여러 함수가 공유해서 사용하는 변수
 ;
+//class 생성
+class Api {
+    constructor(url){
+        this.url = url;
+        this.ajax = new XMLHttpRequest();
+    }
+    getRequest() {
+        this.ajax.open('GET', this.url, false);
+        this.ajax.send();
+        return JSON.parse(ajax.response);
+    }
+}
+class NewsFeedApi extends Api {
+    getData() {
+        return this.getRequest();
+    }
+}
+class NewsDetailApi extends Api {
+    getData() {
+        return this.getRequest();
+    }
+}
 function getData(url) {
     ajax.open('GET', url, false);
     ajax.send();
@@ -485,6 +507,7 @@ function updateView(html) {
 }
 // 목록 호출부분 재사용을 위한 메서드화
 function newsFeed() {
+    const api = new NewsFeedApi(NEWS_URL);
     let newsFeed = store.feeds;
     const newsList = [];
     //https://tailwindcss.com/
@@ -513,7 +536,7 @@ function newsFeed() {
             </div>
         </div>
     `;
-    if (newsFeed.length === 0) newsFeed = store.feeds = makeFeeds(getData(NEWS_URL));
+    if (newsFeed.length === 0) newsFeed = store.feeds = makeFeeds(api.getData());
     for(let i = (store.currentPage - 1) * 10, max = store.currentPage * 10; i < max; i++)newsList.push(`
             <div class="p-6 ${newsFeed[i].read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
                 <div class="flex">
@@ -540,7 +563,8 @@ function newsFeed() {
 }
 function newsDetail() {
     const id = location.hash.substr(7);
-    const newsContent = getData(CONTENT_URL.replace('@id', id));
+    const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
+    const newsContent = api.getData();
     let template = `
         <div class="bg-gray-600 min-h-screen pb-8">
             <div class="bg-white text-xl">
