@@ -1,14 +1,11 @@
-//parcel index.html
-// DOM API를 사용해서 HTML을 그려내면 코드만 봐서는 마크업의 구조(태그들의 위계)를 알아내는 것이 거의 불가능하다.(코드가 복잡해질수록)
-// 따라서 아이러니하게도 DOM API를 사용하지 않고 문자열을 이용하는 것이 마크업 구조를 파악하기 더 용이하다.
+//npx parcel index.html
 
-//let ajax = new XMLHttpRequest();   //let 이후에 다른 값을 넣을 수 있음
-type Store = {
+interface Store {
     currentPage: number;
     feeds: NewsFeed[];
 }
 
-type News = {
+interface News {
     id: number;
     time_ago: string;
     title: string;
@@ -17,20 +14,21 @@ type News = {
     content: string;
 }
 
-type NewsFeed = News & { 
+interface NewsFeed extends News { 
     comments_count: number;
     points: number;
-    read?: boolean;
+    read?: boolean;  //? : optional
 }
 
-type NewsDetail = News & {
+interface NewsDetail extends News {
     comments: NewsComment[];
 }
 
-type NewsComment = News & {
+interface NewsComment extends News {
     comments: NewsComment[];
     level: number;
 }
+
 const container: HTMLElement | null = document.getElementById('root');
 const ajax: XMLHttpRequest = new XMLHttpRequest(); //const는 상수
 const content = document.createElement('div');
@@ -177,6 +175,7 @@ function makeComment(comments: NewsComment[]): string {
 
     for(let i = 0, max = comments.length; i < max; i++){
         const comment: NewsComment = comments[i];
+
         commentString.push(`
             <div style="padding-left: ${comment.level * 40}px;" class="mt-4">
                 <div class="text-gray-400">
