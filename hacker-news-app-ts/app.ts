@@ -6,27 +6,27 @@ interface Store {
 }
 
 interface News {
-    id: number;
-    time_ago: string;
-    title: string;
-    url: string;
-    user: string;
-    content: string;
+    readonly id: number;  //readonly 변경불가 지시어
+    readonly time_ago: string;
+    readonly title: string;
+    readonly url: string;
+    readonly user: string;
+    readonly content: string;
 }
 
 interface NewsFeed extends News { 
-    comments_count: number;
-    points: number;
+    readonly comments_count: number;
+    readonly points: number;
     read?: boolean;  //? : optional
 }
 
 interface NewsDetail extends News {
-    comments: NewsComment[];
+    readonly comments: NewsComment[];
 }
 
 interface NewsComment extends News {
-    comments: NewsComment[];
-    level: number;
+    readonly comments: NewsComment[];
+    readonly level: number;
 }
 
 const container: HTMLElement | null = document.getElementById('root');
