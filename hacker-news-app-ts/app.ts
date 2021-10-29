@@ -37,37 +37,50 @@ const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const store: Store = {
     currentPage: 1,
     feeds: [],
-} //여러 함수가 공유해서 사용하는 변수
+}; //여러 함수가 공유해서 사용하는 변수
+
+
+//상속은 관계를 바꾸기 위해서는 코드 자체를 바꿔야 하며, 다중상속도 불가능하기 때문에 Mixin 기법을 사용
+function appliyApiMixins(targetClass: any, baseClasses: any[]): void {
+    baseClasses.forEach(baseClass => {
+        Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
+            const descripter = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
+
+            if (descripter) {
+                Object.defineProperty(targetClass.prototype, name, descripter);
+            }
+        });
+    });
+}
 
 //class 생성
 class Api {
-    url: string;
-    ajax: XMLHttpRequest;
+    getRequest<AjaxResponse>(url: string): AjaxResponse {
+        const ajax = new XMLHttpRequest;
+        ajax.open('GET', url, false);
+        ajax.send();
 
-    constructor(url: string) {
-        this.url = url;
-        this.ajax = new XMLHttpRequest();
-    }
-
-    protected getRequest<AjaxResponse>(): AjaxResponse {
-        this.ajax.open('GET', this.url, false);
-        this.ajax.send();
-
-        return JSON.parse(this.ajax.response);
+        return JSON.parse(ajax.response);
     }
 }
 
-class NewsFeedApi extends Api {
+class NewsFeedApi {
     getData(): NewsFeed[] {
-        return this.getRequest<NewsFeed[]>();
+        return this.getRequest<NewsFeed[]>(NEWS_URL);
     }
 }
 
-class NewsDetailApi extends Api {
-    getData(): NewsDetail[] {
-        return this.getRequest<NewsDetail[]>();
+class NewsDetailApi {
+    getData(id: string): NewsDetail {
+        return this.getRequest<NewsDetail>(CONTENT_URL.replace('@id', id));
     }
 }
+
+interface NewsFeedApi extends Api {};
+interface NewsDetailApi extends Api {};
+
+appliyApiMixins(NewsFeedApi, [Api]);
+appliyApiMixins(NewsDetailApi, [Api]);
 
 function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
     for(let i = 0, max = feeds.length; i < max; i++) {
@@ -88,7 +101,7 @@ function updateView(html: string): void {
 
 // 목록 호출부분 재사용을 위한 메서드화
 function newsFeed(): void {
-    const api = new NewsFeedApi(NEWS_URL);
+    const api = new NewsFeedApi();
     let newsFeed: NewsFeed[] = store.feeds;
     const newsList = [];
 
@@ -153,8 +166,8 @@ function newsFeed(): void {
 
 function newsDetail(): void {
     const id = location.hash.substr(7);
-    const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
-    const newsContent = api.getData();
+    const api = new NewsDetailApi();
+    const newsContent = api.getData(id);
     let template = `
         <div class="bg-gray-600 min-h-screen pb-8">
             <div class="bg-white text-xl">
