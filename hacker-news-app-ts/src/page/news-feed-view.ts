@@ -1,6 +1,6 @@
 import View from '../core/view';
 import { NewsFeedApi } from '../core/api';
-import { NewsStore } from '../types';
+import { NewsStore, NewsFeed } from '../types';
 import { NEWS_URL } from '../config';
 
 const template: string = `
@@ -37,15 +37,23 @@ export default class NewsFeedView extends View {
 
         this.store = store;
         this.api = new NewsFeedApi(NEWS_URL);
-    
-        if (!this.store.hasFeeds) {
-            this.store.setFeeds(this.api.getData());
-        }
     }
     
     render = (page: string = '1'): void => {
         this.store.currentPage = Number(page);
 
+        if (!this.store.hasFeeds) {
+            this.api.getDataWithPromise((feeds: NewsFeed[]) => {
+                this.store.setFeeds(feeds);
+                this.renderView();
+            })
+        }
+
+        this.renderView();
+        
+    }
+
+    renderView = () => {
         for (let i = (this.store.currentPage - 1) * 10, max = this.store.currentPage * 10; i < max; i++) {
             //구조 분해 할당(ES5 이후 추가된 문법★★)
             const { id, title, comments_count, user, points, time_ago, read } = this.store.getFeed(i); 

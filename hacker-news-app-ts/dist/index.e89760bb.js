@@ -606,14 +606,16 @@ class NewsDetailView extends _viewDefault.default {
         super(containerId, template);
         this.render = (id)=>{
             const api = new _api.NewsDetailApi(_config.CONTENT_URL.replace('@id', id));
-            const { title , content , comments , url  } = api.getData();
-            this.store.makeRead(Number(id));
-            this.setTemplateData('currentPage', this.store.currentPage.toString());
-            this.setTemplateData('title', title);
-            this.setTemplateData('link', url);
-            this.setTemplateData('content', content);
-            this.setTemplateData('comments', this.makeComment(comments));
-            this.updateView();
+            api.getDataWithPromise((data)=>{
+                const { title , content , comments , url  } = data;
+                this.store.makeRead(Number(id));
+                this.setTemplateData('currentPage', this.store.currentPage.toString());
+                this.setTemplateData('title', title);
+                this.setTemplateData('link', url);
+                this.setTemplateData('content', content);
+                this.setTemplateData('comments', this.makeComment(comments));
+                this.updateView();
+            });
         };
         this.store = store;
     }
@@ -682,23 +684,45 @@ parcelHelpers.export(exports, "NewsDetailApi", ()=>NewsDetailApi
 );
 class Api {
     constructor(url){
-        this.ajax = new XMLHttpRequest();
+        this.xhr = new XMLHttpRequest();
         this.url = url;
     }
-    getRequest() {
-        this.ajax.open('GET', this.url, false);
-        this.ajax.send();
-        return JSON.parse(this.ajax.response);
+    //동기 코드로 작성하면 응답이 올 때까지 UI가 아무것도 움직이지 않는다.
+    //비동기 코드 작성법
+    getRequestWithXHR(callback) {
+        this.xhr.open('GET', this.url);
+        this.xhr.addEventListener('load', ()=>{
+            callback(JSON.parse(this.xhr.response));
+        });
+        this.xhr.send();
+    }
+    getRequestWithPromise(callback) {
+        fetch(this.url).then((response)=>response.json()
+        ).then(callback).catch(()=>{
+            console.error('데이터를 불러오지 못했습니다.');
+        });
     }
 }
 class NewsFeedApi extends Api {
-    getData() {
-        return this.getRequest();
+    constructor(url){
+        super(url);
+    }
+    getDataWithXHR(callback) {
+        return this.getRequestWithXHR(callback);
+    }
+    getDataWithPromise(callback) {
+        return this.getRequestWithXHR(callback);
     }
 }
 class NewsDetailApi extends Api {
-    getData() {
-        return this.getRequest();
+    constructor(url){
+        super(url);
+    }
+    getDataWithXHR(callback) {
+        return this.getRequestWithXHR(callback);
+    }
+    getDataWithPromise(callback) {
+        return this.getRequestWithXHR(callback);
     }
 }
 
@@ -750,6 +774,13 @@ class NewsFeedView extends _viewDefault.default {
         super(containerId, template);
         this.render = (page = '1')=>{
             this.store.currentPage = Number(page);
+            if (!this.store.hasFeeds) this.api.getDataWithPromise((feeds)=>{
+                this.store.setFeeds(feeds);
+                this.renderView();
+            });
+            this.renderView();
+        };
+        this.renderView = ()=>{
             for(let i = (this.store.currentPage - 1) * 10, max = this.store.currentPage * 10; i < max; i++){
                 //구조 분해 할당(ES5 이후 추가된 문법★★)
                 const { id , title , comments_count , user , points , time_ago , read  } = this.store.getFeed(i);
@@ -780,7 +811,6 @@ class NewsFeedView extends _viewDefault.default {
         };
         this.store = store;
         this.api = new _api.NewsFeedApi(_config.NEWS_URL);
-        if (!this.store.hasFeeds) this.store.setFeeds(this.api.getData());
     }
 }
 
