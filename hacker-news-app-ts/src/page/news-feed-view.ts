@@ -39,21 +39,13 @@ export default class NewsFeedView extends View {
         this.api = new NewsFeedApi(NEWS_URL);
     }
     
-    render = (page: string = '1'): void => {
+    render = async (page: string = '1'): Promise<void> => {
         this.store.currentPage = Number(page);
 
         if (!this.store.hasFeeds) {
-            this.api.getDataWithPromise((feeds: NewsFeed[]) => {
-                this.store.setFeeds(feeds);
-                this.renderView();
-            })
+            this.store.setFeeds(await this.api.getData());
         }
 
-        this.renderView();
-        
-    }
-
-    renderView = () => {
         for (let i = (this.store.currentPage - 1) * 10, max = this.store.currentPage * 10; i < max; i++) {
             //구조 분해 할당(ES5 이후 추가된 문법★★)
             const { id, title, comments_count, user, points, time_ago, read } = this.store.getFeed(i); 

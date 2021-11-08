@@ -604,18 +604,16 @@ const template = `
 class NewsDetailView extends _viewDefault.default {
     constructor(containerId, store){
         super(containerId, template);
-        this.render = (id)=>{
+        this.render = async (id)=>{
             const api = new _api.NewsDetailApi(_config.CONTENT_URL.replace('@id', id));
-            api.getDataWithPromise((data)=>{
-                const { title , content , comments , url  } = data;
-                this.store.makeRead(Number(id));
-                this.setTemplateData('currentPage', this.store.currentPage.toString());
-                this.setTemplateData('title', title);
-                this.setTemplateData('link', url);
-                this.setTemplateData('content', content);
-                this.setTemplateData('comments', this.makeComment(comments));
-                this.updateView();
-            });
+            const { title , content , comments , url  } = await api.getData();
+            this.store.makeRead(Number(id));
+            this.setTemplateData('currentPage', this.store.currentPage.toString());
+            this.setTemplateData('title', title);
+            this.setTemplateData('link', url);
+            this.setTemplateData('content', content);
+            this.setTemplateData('comments', this.makeComment(comments));
+            this.updateView();
         };
         this.store = store;
     }
@@ -687,42 +685,26 @@ class Api {
         this.xhr = new XMLHttpRequest();
         this.url = url;
     }
-    //동기 코드로 작성하면 응답이 올 때까지 UI가 아무것도 움직이지 않는다.
-    //비동기 코드 작성법
-    getRequestWithXHR(callback) {
-        this.xhr.open('GET', this.url);
-        this.xhr.addEventListener('load', ()=>{
-            callback(JSON.parse(this.xhr.response));
-        });
-        this.xhr.send();
-    }
-    getRequestWithPromise(callback) {
-        fetch(this.url).then((response)=>response.json()
-        ).then(callback).catch(()=>{
-            console.error('데이터를 불러오지 못했습니다.');
-        });
+    //비동기 함수
+    async request() {
+        const response = await fetch(this.url);
+        return await response.json();
     }
 }
 class NewsFeedApi extends Api {
     constructor(url){
         super(url);
     }
-    getDataWithXHR(callback) {
-        return this.getRequestWithXHR(callback);
-    }
-    getDataWithPromise(callback) {
-        return this.getRequestWithXHR(callback);
+    async getData() {
+        return await this.request();
     }
 }
 class NewsDetailApi extends Api {
     constructor(url){
         super(url);
     }
-    getDataWithXHR(callback) {
-        return this.getRequestWithXHR(callback);
-    }
-    getDataWithPromise(callback) {
-        return this.getRequestWithXHR(callback);
+    async getData() {
+        return await this.request();
     }
 }
 
@@ -772,15 +754,9 @@ const template = `
 class NewsFeedView extends _viewDefault.default {
     constructor(containerId, store){
         super(containerId, template);
-        this.render = (page = '1')=>{
+        this.render = async (page = '1')=>{
             this.store.currentPage = Number(page);
-            if (!this.store.hasFeeds) this.api.getDataWithPromise((feeds)=>{
-                this.store.setFeeds(feeds);
-                this.renderView();
-            });
-            this.renderView();
-        };
-        this.renderView = ()=>{
+            if (!this.store.hasFeeds) this.store.setFeeds(await this.api.getData());
             for(let i = (this.store.currentPage - 1) * 10, max = this.store.currentPage * 10; i < max; i++){
                 //구조 분해 할당(ES5 이후 추가된 문법★★)
                 const { id , title , comments_count , user , points , time_ago , read  } = this.store.getFeed(i);
