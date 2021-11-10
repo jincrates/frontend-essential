@@ -1,3 +1,6 @@
+import { AnyObject } from './types';
+import App from './app';
+
 declare global {
     interface Window {
         Handlebars: {
