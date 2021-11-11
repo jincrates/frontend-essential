@@ -33,11 +33,11 @@ export default class App {
             id: 'email', label: '이메일', type: 'email', placeholder: '이메일을 입력해주세요', require: true,
         });
 
-        const passwordField = new TextField('#required-fields', {
-            id: 'password', label: '비밀번호', type: 'email', placeholder: '비밀번호를 입력해주세요',
+        const passwordField = new PasswordField('#required-fields', { 
+            id: 'password', label: '비밀번호', placeholder: '비밀번호를 입력해주세요', 
         });
-
-        const addressField = new TextField('#required-fields', {
+      
+        const addressField = new AddressField('#optional-fields', {
             id: 'address', label: '배송지 주소',
         });
 
